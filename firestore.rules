@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'fullName', 'email', 'createdAt'])
+        && data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100
+        && data.email is string && data.email.size() <= 120
+        && data.createdAt is string && data.createdAt.size() <= 50;
+    }
+
+    function isValidSafetyReport(data) {
+      return data.keys().hasAll(['reportId', 'userId', 'reportName', 'sourceType', 'createdAt', 'riskScore', 'safetyStatus', 'hazardCount'])
+        && data.reportId is string && data.reportId.size() > 0 && data.reportId.size() <= 64
+        && data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128
+        && data.reportName is string && data.reportName.size() <= 200
+        && data.sourceType is string && data.sourceType.size() <= 30
+        && data.createdAt is string && data.createdAt.size() <= 50
+        && (data.riskScore is int || data.riskScore is float) && data.riskScore >= 0 && data.riskScore <= 100
+        && data.safetyStatus is string && data.safetyStatus.size() <= 30
+        && (data.hazardCount is int || data.hazardCount is float) && data.hazardCount >= 0;
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profile documents
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data) && request.resource.data.uid == userId;
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data) && request.resource.data.uid == userId;
+      allow delete: if false;
+
+      // User's isolated safety analysis reports subcollection
+      match /reports/{reportId} {
+        allow get: if isOwner(userId) && isValidId(reportId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(reportId) && isValidSafetyReport(request.resource.data) && request.resource.data.userId == userId;
+        allow update: if isOwner(userId) && isValidId(reportId) && isValidSafetyReport(request.resource.data) && request.resource.data.userId == userId;
+        allow delete: if isOwner(userId) && isValidId(reportId);
+      }
+    }
+  }
+}

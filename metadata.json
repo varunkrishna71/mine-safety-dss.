@@ -1,0 +1,7 @@
+{
+  "name": "Mine Safety Decision Support System",
+  "description": "NLP-based mine inspection analysis for DGMS and CMR 2017 compliance, hazard classification, statutory form recommendations, and Google Gemini AI Safety Assistant.",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

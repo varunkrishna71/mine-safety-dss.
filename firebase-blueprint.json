@@ -1,0 +1,122 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile information for DGMS Mining Safety DSS personnel",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user",
+          "maxLength": 128
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the mining safety officer or engineer",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Official email address of the user",
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account creation"
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "description": "ISO timestamp of last login"
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether the user email is verified"
+        }
+      },
+      "required": ["uid", "fullName", "email", "createdAt"]
+    },
+    "SafetyReport": {
+      "title": "Safety Report",
+      "description": "Archived statutory mining incident and inspection analysis record",
+      "type": "object",
+      "properties": {
+        "reportId": {
+          "type": "string",
+          "description": "Unique report identification string",
+          "maxLength": 64
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "reportName": {
+          "type": "string",
+          "description": "Title or descriptive label of the mining report",
+          "maxLength": 200
+        },
+        "sourceType": {
+          "type": "string",
+          "description": "Source modality: manual_text, pdf_upload, docx_upload, txt_upload",
+          "enum": ["manual_text", "pdf_upload", "docx_upload", "txt_upload", "file_upload"]
+        },
+        "originalFileName": {
+          "type": "string",
+          "description": "Original file name if uploaded",
+          "maxLength": 255
+        },
+        "documentFormat": {
+          "type": "string",
+          "description": "Document format: MANUAL, PDF, DOCX, TXT",
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of analysis"
+        },
+        "riskScore": {
+          "type": "number",
+          "description": "DGMS statutory composite risk score 0 to 100"
+        },
+        "safetyStatus": {
+          "type": "string",
+          "description": "Statutory risk classification: HIGH RISK, MEDIUM RISK, LOW RISK / SAFE",
+          "enum": ["HIGH RISK", "MEDIUM RISK", "LOW RISK / SAFE", "SAFE"]
+        },
+        "statutoryForm": {
+          "type": "string",
+          "description": "Statutory DGMS CMR 2017 form mapping (Form IV-A, Form J, Form K)",
+          "maxLength": 30
+        },
+        "hazardCount": {
+          "type": "number",
+          "description": "Number of detected DGMS statutory hazards"
+        },
+        "detectedHazards": {
+          "type": "array",
+          "description": "List of detected hazard categories"
+        },
+        "alerts": {
+          "type": "array",
+          "description": "List of specific threshold alerts (e.g., Methane > 1.25%)"
+        },
+        "recommendations": {
+          "type": "array",
+          "description": "Actionable DGMS statutory safety recommendations"
+        }
+      },
+      "required": ["reportId", "userId", "reportName", "sourceType", "createdAt", "riskScore", "safetyStatus", "hazardCount"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Private profile document for an authenticated mining safety officer"
+    },
+    "/users/{userId}/reports/{reportId}": {
+      "schema": "SafetyReport",
+      "description": "Isolated statutory safety analysis reports created by or belonging to the user"
+    }
+  }
+}
